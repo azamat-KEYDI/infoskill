@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Информатика - 1-сабақ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Сыртқы CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-100 font-sans">
+
+  <!-- Навигация -->
+  <nav style="background-color: rgb(40 52 78)" class="text-white p-4">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-2xl font-bold">ҰБТға дайындық</h1>
+      <div>
+        <a href="index.html" class="mx-2 hover:underline">Главная</a>
+        <a href="#courses" class="mx-2 hover:underline">Курсы</a>
+        <a href="index.html#register" class="mx-2 hover:underline">Регистрация</a>
+        <a href="javascript:logout()" class="mx-2 hover:underline">Выйти</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Сабақ -->
+  <section class="py-16 bg-white">
+    <div class="container mx-auto">
+      <h2 class="text-3xl font-bold text-center mb-8">Информатикадан сабақтар</h2>
+      <div class="max-w-4xl mx-auto">
+        <div class="lesson-card">
+          <div class="flex items-start mb-2">
+            <span class="lesson-number">110010</span>
+            <div>
+              <h4 class="text-lg font-medium">1-сабақ: Кіріспе</h4>
+              <p class="text-gray-600">Ақпарат — адам көмегімен ауызша, жазбаша және басқа әдістермен берілетін мәлімет.</p>
+            </div>
+          </div>
+
+          <!-- Видео -->
+          <div class="video-container">
+            <video id="lesson-1-1" controls class="rounded-lg">
+              <source src="lesson_1_1.mp4" type="video/mp4">
+              Сіздің браузер видео қолдамайды.
+            </video>
+          </div>
+
+          <!-- Прогресс -->
+          <p class="text-gray-600 mt-2">Прогресс: <span id="progress-1-1">0%</span></p>
+
+          <!-- Курс құрылымы collapsible -->
+          <details class="mt-4">
+            <summary class="cursor-pointer font-semibold">Курс құрылымы</summary>
+            <p class="text-gray-600 mt-2">
+              • Ақпарат бойынша операциялар, санау жүйелері <br>
+              • Компьютер құрылымы, архитектурасы, желілер <br>
+              • Графтар және алгоритмдер <br>
+              • Python программалау тілі <br>
+              • Excel электронды кестесі <br>
+              • Деректер қоры және SQL <br>
+              • MS Access <br>
+              • Web (HTML, CSS, JavaScript) <br>
+              • Теориялық блок (ҰБТ-ға керек тақырыптар)
+            </p>
+          </details>
+        </div>
+
+        <!-- Навигация батырмасы -->
+        <div class="flex justify-end mt-4">
+          <button id="next-btn" disabled
+            class="bg-blue-600 opacity-50 text-white px-4 py-2 rounded-lg">
+            Вперед
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Футер -->
+  <footer style="background-color: rgb(40 52 78)" class="text-white p-4 text-center">
+    <p>© 2026 Информатика пәнінен ҰБТға дайындық</p>
+  </footer>
+
+  <!-- JavaScript -->
+  <script>
+    // Аутентификация тексеру
+    if (!localStorage.getItem('isAuthenticated')) {
+      window.location.href = 'login.html';
+    }
+
+    const vid = document.getElementById('lesson-1-1');
+    const progressId = 'progress-1-1';
+    const progressEl = document.getElementById(progressId);
+    const nextBtn = document.getElementById('next-btn');
+
+    // Прогресс localStorage-тан алу
+    const savedProgress = localStorage.getItem(progressId) || '0%';
+    progressEl.textContent = savedProgress;
+
+    // Видео уақыт жаңартылған сайын прогресс жазу
+    vid.addEventListener('timeupdate', () => {
+      const percent = Math.floor((vid.currentTime / vid.duration) * 100);
+      if (!isNaN(percent)) {
+        localStorage.setItem(progressId, percent + '%');
+        progressEl.textContent = percent + '%';
+      }
+
+      // Егер толық қаралса, батырманы ашу
+      if (percent >= 100) {
+        nextBtn.disabled = false;
+        nextBtn.classList.remove('opacity-50');
+        nextBtn.classList.add('hover:bg-blue-700', 'cursor-pointer');
+      }
+    });
+
+    // Келесі сабақ
+    nextBtn.addEventListener('click', () => {
+      window.location.href = 'lesson2.html';
+    });
+
+    // Logout
+    function logout() {
+      localStorage.removeItem('isAuthenticated');
+      window.location.href = 'login.html';
+    }
+  </script>
+</body>
+</html>

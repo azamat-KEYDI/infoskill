@@ -1,0 +1,154 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Информатика - 2-нші сабақ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .lesson-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            background: #fff;
+        }
+        .lesson-number {
+            font-size: 1.5rem;
+            color: #00aaff;
+            margin-right: 10px;
+        }
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            height: 0;
+            overflow: hidden;
+        }
+        .video-container video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <!-- Навигация -->
+    <nav class="bg-blue-600 text-white p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Онлайн-школа</h1>
+            <div>
+                <a href="index.html" class="mx-2 hover:underline">Главная</a>
+                <a href="#courses" class="mx-2 hover:underline">Курсы</a>
+                <a href="index.html#register" class="mx-2 hover:underline">Регистрация</a>
+                <a href="javascript:logout()" class="mx-2 hover:underline">Выйти</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Секция видеоуроков -->
+    <section class="py-16 bg-white">
+        <div class="container mx-auto">
+            <h2 class="text-3xl font-bold text-center mb-8">Видеоуроки по информатике</h2>
+            <div class="max-w-4xl mx-auto">
+                <div class="lesson-card">
+                    <div class="flex items-start mb-2">
+                        <span class="lesson-number">1000101</span>
+                        <div>
+                            <h4 class="text-lg font-medium">2-нші сабақ: Ақпарат</h4>
+                            <p class="text-gray-600">Ақпаратты кодтау — ақпаратты қайсыздықты камтамасыз етуге бағытталған шаралар.</p>
+                        </div>
+                    </div>
+                    <div class="video-container">
+                        <video id="lesson-2-1" width="100%" height="auto" controls class="rounded-lg">
+                            <source src="lesson_2_1.mp4" type="video/mp4">
+                            Ваш браузер не поддерживает видео.
+                        </video>
+                    </div>
+                    <p class="text-gray-600">Прогресс: <span id="progress-2-1">0%</span></p>
+                </div>
+                <!-- Навигация батырмалары -->
+                <div class="flex justify-between mt-4">
+                    <button id="prev-btn" class="bg-gray-300 text-black px-4 py-2 rounded-lg hover:bg-gray-400" onclick="goToPrevLesson()">Назад</button>
+                    <button id="next-btn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700" onclick="goToNextLesson()">Дальше</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Футер -->
+    <footer class="bg-blue-600 text-white p-4 text-center">
+        <p>© 2025 Онлайн-школа по информатике и математической грамотности</p>
+    </footer>
+
+    <script>
+        // Проверка аутентификации
+        if (!localStorage.getItem('isAuthenticated')) {
+            window.location.href = 'login.html';
+        }
+
+        // Прогресс для видеолар
+        const vid = document.getElementById('lesson-2-1');
+        const progressId = 'progress-2-1';
+        const progress = localStorage.getItem(progressId) || '0%';
+        document.getElementById(progressId).textContent = progress;
+
+        vid.addEventListener('ended', () => {
+            localStorage.setItem(progressId, '100%');
+            document.getElementById(progressId).textContent = '100%';
+        });
+
+        function goToPrevLesson() {
+            window.location.href = 'informatics.html';
+        }
+
+        function goToNextLesson() {
+            window.location.href = 'lesson3.html';
+        }
+
+        function logout() {
+            localStorage.removeItem('isAuthenticated');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>

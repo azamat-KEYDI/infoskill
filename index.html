@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InfoSkill.edu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans pt-20">
+
+<!-- НАВИГАЦИЯ -->
+<nav style="background-color: rgb(40 52 78);" class="text-white p-4 fixed top-0 w-full z-10">
+    <div class="container mx-auto flex justify-between items-center">
+        <h1 class="text-2xl font-bold">InfoSkill</h1>
+        <div class="flex items-center">
+            <a href="#home" class="mx-2 hover:underline">Главная</a>
+            <a href="#courses" class="mx-2 hover:underline">Курсы</a>
+            <!-- Тест батырмасы кодпен ашылады -->
+            <button onclick="openTest()" class="mx-2 hover:underline">Тест</button>
+            <button onclick="logout()" class="mx-2 hover:underline">Выйти</button>
+        </div>
+    </div>
+</nav>
+
+<!-- БЛОК ОСНОВАТЕЛЯ -->
+<section class="mt-20" style="background-color: rgb(40 52 78);">
+    <div class="container mx-auto py-20 flex justify-center px-4">
+        <div class="bg-gray-100 rounded-3xl p-10 max-w-4xl shadow-xl relative">
+
+            <div class="absolute -left-12 top-10 hidden md:block">
+                <div class="w-24 h-24 bg-gray-300 rounded-full border-4 border-white shadow-lg"></div>
+            </div>
+
+            <!-- ✨ Добро пожаловать главный текст -->
+            <h2 class="text-3xl md:text-4xl font-bold mt-6 leading-snug text-center text-black">
+                Добро пожаловать в <span class="text-black">"InfoSkill"</span> – 
+                образовательную платформу, где главным приоритетом 
+                является качество подготовки и реальные результаты учеников.
+            </h2>
+
+            <!-- ✨ Азамат блокын ен астына түсірдік -->
+            <div class="mt-8 text-center">
+                <p class="text-blue-900 font-semibold text-lg">
+                    Ниязалиев Азамат Мирзахматович
+                </p>
+                <p class="text-gray-600">основатель</p>
+            </div>
+
+            <div class="mt-8 text-center">
+                <a href="#courses"
+                   class="bg-blue-200 px-8 py-4 rounded-full text-lg font-medium hover:opacity-90 transition">
+                    О наших курсах →
+                </a>
+            </div>
+
+        </div>
+    </div>
+</section>
+<!-- ПРОБНЫЙ ЕНТ -->
+<section class="py-20 bg-gray-50">
+    <div class="container mx-auto px-4 text-center">
+
+        <h2 class="text-4xl font-bold mb-6">
+            Что такое пробный ЕНТ и почему он важен?
+        </h2>
+
+        <p class="text-gray-600 max-w-3xl mx-auto mb-12">
+            Пробный ЕНТ — это тестирование, максимально приближённое к реальному экзамену.
+            После выбора обязательных и профильных предметов вы проходите тест и сразу узнаёте результат.
+        </p>
+
+        <!-- Карточки -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+
+            <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
+                <div class="text-purple-600 text-3xl mb-4">📊</div>
+                <h3 class="font-semibold text-lg mb-2">Оценка уровня</h3>
+                <p class="text-gray-500 text-sm">
+                    Показывает, насколько хорошо вы подготовлены сейчас и каких баллов не хватает до цели.
+                </p>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
+                <div class="text-purple-600 text-3xl mb-4">⏱</div>
+                <h3 class="font-semibold text-lg mb-2">Отработка тайминга</h3>
+                <p class="text-gray-500 text-sm">
+                    Тест проходит в условиях настоящего ЕНТ — с ограничением по времени.
+                </p>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
+                <div class="text-purple-600 text-3xl mb-4">🔎</div>
+                <h3 class="font-semibold text-lg mb-2">Поиск слабых тем</h3>
+                <p class="text-gray-500 text-sm">
+                    Получаете анализ по темам, которые требуют усиленной подготовки.
+                </p>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
+                <div class="text-purple-600 text-3xl mb-4">🎓</div>
+                <h3 class="font-semibold text-lg mb-2">Подготовка к гранту</h3>
+                <p class="text-gray-500 text-sm">
+                    Понимание, хватает ли текущих баллов, чтобы претендовать на грант.
+                </p>
+            </div>
+
+        </div>
+
+        <!-- Нижняя плашка -->
+        <div class="mt-12">
+            <div class="bg-purple-100 text-purple-700 py-4 px-8 rounded-xl inline-block font-medium">
+                Регулярное прохождение пробного ЕНТ увеличивает итоговый результат на 15–30 баллов.
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- СТАТИСТИКА -->
+<section class="py-20 bg-white">
+    <div class="container mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+
+            <div>
+                <h2 class="text-7xl font-bold text-gray-900">12 <span class="text-4xl">тыс.</span></h2>
+                <p class="text-2xl mt-6 font-semibold">учеников</p>
+                <p class="text-gray-500 mt-3">
+                    Обучается в школе и более 1500 выпускников ежегодно
+                </p>
+            </div>
+
+            <div>
+                <h2 class="text-7xl font-bold text-gray-900">400+</h2>
+                <p class="text-2xl mt-6 font-semibold">учителей и методистов</p>
+                <p class="text-gray-500 mt-3">
+                    Помогают нашим ученикам достигать высоких результатов
+                </p>
+            </div>
+
+            <div>
+                <h2 class="text-7xl font-bold text-gray-900">7</h2>
+                <p class="text-2xl mt-6 font-semibold">стобалльников</p>
+                <p class="text-gray-500 mt-3">
+                    Закончили нашу школу в 2025 году
+                </p>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- КУРСЫ (уроки) -->
+<section id="courses" class="py-16 bg-gray-100">
+    <div class="container mx-auto px-4">
+        <h2 class="text-3xl font-bold text-center mb-8">Менің курстарым</h2>
+
+        <div class="flex justify-center gap-8 flex-wrap">
+
+            <!-- Информатика -->
+            <div class="bg-white p-6 rounded-lg shadow-lg w-64 text-center transform hover:scale-105 hover:shadow-2xl transition duration-300">
+                <h3 class="text-2xl font-semibold mb-4">Информатика</h3>
+                <img src="informatics-icon.png" alt="Информатика" class="w-40 h-40 mx-auto mb-4 rounded-full object-cover border-2 border-gray-200">
+                <button onclick="openCourse('informatics.html')" class="text-blue-600 font-medium hover:underline">Купить</button>
+            </div>
+
+            <!-- Математика -->
+            <div class="bg-white p-6 rounded-lg shadow-lg w-64 text-center transform hover:scale-105 hover:shadow-2xl transition duration-300">
+                <h3 class="text-2xl font-semibold mb-4">Математика</h3>
+                <img src="math-icon.png" alt="Математика" class="w-40 h-40 mx-auto mb-4 rounded-full object-cover border-2 border-gray-200">
+                <button onclick="openCourse('math.html')" class="text-blue-600 font-medium hover:underline">Купить</button>
+            </div>
+
+            <!-- МС -->
+            <div class="bg-white p-6 rounded-lg shadow-lg w-64 text-center transform hover:scale-105 hover:shadow-2xl transition duration-300">
+                <h3 class="text-2xl font-semibold mb-4">МС</h3>
+                <img src="ms-icon.png" alt="МС" class="w-40 h-40 mx-auto mb-4 rounded-full object-cover border-2 border-gray-200">
+                <button onclick="openCourse('ms.html')" class="text-blue-600 font-medium hover:underline">Купить</button>
+            </div>
+
+        </div>
+    </div>
+</section>
+<!-- ФУТЕР -->
+<footer style="background-color: rgb(40 52 78);" class="text-white pt-16 pb-8">
+    <div class="container mx-auto px-4">
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-10 text-center md:text-left">
+
+            <!-- Логотип / название -->
+            <div>
+                <h2 class="text-2xl font-bold mb-4">InfoSkill</h2>
+                <p class="text-gray-300">
+                    Подготовка к ЕНТ по информатике, математике и МС.
+                </p>
+            </div>
+
+            <!-- Контакты -->
+            <div>
+                <h3 class="text-xl font-semibold mb-4">Контакты</h3>
+                <p class="mb-2">📞 +7 701 100 0748</p>
+                
+                <p>📸 Instagram: infoskill.kz</p> <!-- Инсту сам впишешь -->
+            </div>
+
+            <!-- Кнопки -->
+            <div>
+                <h3 class="text-xl font-semibold mb-4">Связаться</h3>
+
+                <div class="flex flex-col md:flex-row gap-4 justify-center md:justify-start">
+
+                    <a href="https://wa.me/77011000748"
+                       target="_blank"
+                       class="bg-green-500 hover:bg-green-600 px-6 py-3 rounded-lg font-medium transition">
+                        WhatsApp
+                    </a>
+
+                    <a href="#"
+                       class="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-lg font-medium transition">
+                        Telegram
+                    </a>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Нижняя линия -->
+        <div class="border-t border-gray-600 mt-12 pt-6 text-center text-gray-400">
+            © 2026 InfoSkill – Информатика пәнінен ҰБТ-ға дайындық
+        </div>
+
+    </div>
+</footer>
+
+
+<script>
+    // Функция для открытия курса через код
+    function openCourse(url) {
+        const code = prompt("Курсқа кіру үшін кодты енгізіңіз:");
+
+        if (code === "1234") {
+            window.location.href = url;
+        } else if (code !== null) {
+            alert("Қате код!");
+        }
+    }
+</script>
+
+    
+
+<!-- ФУТЕР -->
+<footer style="background-color: rgb(40 52 78);" class="text-white p-4 text-center">
+    <p>© 2025 InfoSkill – Информатика пәнінен ҰБТ-ға дайындық</p>
+</footer>
+
+<script>
+    // Аутентификация
+    if (!localStorage.getItem('isAuthenticated')) {
+        window.location.href = 'login.html';
+    }
+
+    function logout() {
+        if (confirm('Вы уверены, что хотите выйти?')) {
+            localStorage.removeItem('isAuthenticated');
+            window.location.href = 'login.html';
+        }
+    }
+
+    // 🔐 Тестке кодпен кіру
+    function openTest() {
+        const code = prompt("Тестке кіру үшін кодты енгізіңіз:");
+
+        if (code === "1234") {
+            window.location.href = "testter.html";
+        } else if (code !== null) {
+            alert("Қате код!");
+        }
+    }
+</script>
+
+</body>
+</html>

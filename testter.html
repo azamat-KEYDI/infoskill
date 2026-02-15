@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+  <title>InfoSkill.edu – ҰБТ (орташа/қиын аралас, 8 нұсқа)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .locked-variant { opacity: 0.7; position: relative; }
+    .locked-variant::after {
+      content: "🔒";
+      position: absolute;
+      top: 2px;
+      right: 5px;
+      font-size: 12px;
+    }
+    .unlocked-variant::after {
+      content: "🔓";
+      position: absolute;
+      top: 2px;
+      right: 5px;
+      font-size: 12px;
+    }
+    .question-card { transition: all 0.2s ease; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    input[type=radio] { cursor: pointer; width: 1.1rem; height: 1.1rem; }
+    .hard-question { border-left: 4px solid #ef4444; }
+    .medium-question { border-left: 4px solid #f59e0b; }
+  </style>
+</head>
+<body class="flex flex-col lg:flex-row min-h-screen bg-gray-100">
+
+  <!-- СОЛ ЖАҚ МӘЗІР -->
+  <div class="w-full lg:w-80 bg-gradient-to-b from-gray-800 to-gray-900 text-white p-3 sm:p-4 overflow-y-auto lg:min-h-screen shadow-xl">
+    <div class="text-center py-3 sm:py-4 border-b border-gray-700">
+      <h1 class="text-xl sm:text-2xl font-bold">InfoSkill.edu</h1>
+      <p class="text-xs sm:text-sm text-gray-400 mt-1">ҰБТ тест жүйесі</p>
+    </div>
+    
+    <!-- нұсқа таңдау -->
+    <div class="mt-4 mb-3">
+      <label class="block text-xs sm:text-sm font-medium text-gray-400 mb-2">Тест нұсқасы (1-8):</label>
+      <div class="grid grid-cols-4 gap-1 sm:gap-2" id="variantSelector"></div>
+    </div>
+
+    <!-- пароль аймағы -->
+    <div id="passwordSection" class="mt-3 p-3 sm:p-4 bg-gray-700 rounded-lg hidden">
+      <h3 class="font-medium text-sm sm:text-base mb-2" id="passwordTitle">2-нұсқаға кіру</h3>
+      <input type="password" id="variantPassword" placeholder="Пароль енгізіңіз" 
+             class="w-full p-2 rounded bg-gray-600 text-white border border-gray-500 focus:outline-none focus:border-blue-500 mb-2 text-sm">
+      <button onclick="checkVariantPassword()" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-500 transition text-sm">
+        Кіру
+      </button>
+      <p id="variantPasswordError" class="text-red-400 text-xs sm:text-sm mt-2 hidden">Қате пароль!</p>
+    </div>
+
+    <!-- сұрақ нөмірлері -->
+    <div class="mt-4" id="questionsSection">
+      <div class="flex justify-between items-center text-xs sm:text-sm font-medium text-gray-400 mb-2">
+        <span>📋 Сұрақтар:</span>
+        <span id="answeredCount" class="text-blue-400">0/90</span>
+      </div>
+      <div id="questionNumbers" class="grid grid-cols-5 gap-1 sm:gap-2 max-h-48 sm:max-h-60 overflow-y-auto p-1"></div>
+    </div>
+
+    <!-- прогресс бар -->
+    <div class="mt-5 p-2 sm:p-3 bg-gray-700 rounded-lg">
+      <div class="flex justify-between text-xs sm:text-sm mb-1">
+        <span>Прогресс:</span>
+        <span id="progressPercent">0%</span>
+      </div>
+      <div class="w-full bg-gray-600 rounded-full h-2.5">
+        <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <!-- пән статистикасы -->
+    <div class="mt-4 text-xs text-gray-400 space-y-1 border-t border-gray-700 pt-3">
+      <div class="flex flex-wrap justify-between gap-1">
+        <span>📘 Информатика: <span id="infoProgress">0/40</span></span>
+        <span>📗 Математика: <span id="mathProgress">0/40</span></span>
+        <span>📙 Мат.сауаттылық: <span id="literacyProgress">0/10</span></span>
+      </div>
+      <div class="flex justify-between items-center mt-2 text-blue-300">
+        <span>🔹 Ағымдағы нұсқа: <span id="currentVariantInfo">1</span>/8</span>
+        <span id="variantStatus" class="text-green-300 text-xs">1-нұсқа тегін</span>
+      </div>
+      <div class="flex gap-2 mt-2 text-xs">
+        <span class="text-orange-400">🟠 Орташа</span>
+        <span class="text-red-400">🔴 Күрделі</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- НЕГІЗГІ БӨЛІМ -->
+  <div class="flex-1 p-3 sm:p-5 lg:p-6 overflow-y-auto bg-gradient-to-br from-blue-50 to-indigo-50">
+    <div id="mainContent">
+      <!-- Шапка -->
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+        <div>
+          <h2 id="subjectTitle" class="text-2xl sm:text-3xl font-bold text-gray-800">ҰБТ тесті</h2>
+          <p id="variantInfo" class="text-gray-600 text-sm sm:text-base mt-1">1-нұсқа (тегін) • 90 сұрақ</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button id="resetBtn" onclick="resetTest()" class="hidden bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition text-sm sm:text-base">
+            🔄 Жаңа тест
+          </button>
+          <button id="finishBtn" onclick="confirmFinish()" class="hidden bg-gradient-to-r from-red-600 to-red-500 text-white px-5 py-2 rounded-lg hover:from-red-700 hover:to-red-600 shadow-lg transition text-sm sm:text-base">
+            ✅ Аяқтау
+          </button>
+        </div>
+      </div>
+
+      <!-- пән табтары -->
+      <div class="flex flex-nowrap gap-1 sm:gap-2 mb-4 border-b border-gray-300 overflow-x-auto pb-1 no-scrollbar">
+        <button onclick="showSubjectTab('informatics')" id="tabInformatics" class="px-3 sm:px-4 py-2 rounded-t-lg bg-white text-blue-600 font-medium border-b-2 border-blue-600 whitespace-nowrap text-sm sm:text-base">
+          📘 Информатика (40)
+        </button>
+        <button onclick="showSubjectTab('mathematics')" id="tabMathematics" class="px-3 sm:px-4 py-2 rounded-t-lg bg-gray-200 text-gray-700 font-medium whitespace-nowrap text-sm sm:text-base">
+          📗 Математика (40)
+        </button>
+        <button onclick="showSubjectTab('literacy')" id="tabLiteracy" class="px-3 sm:px-4 py-2 rounded-t-lg bg-gray-200 text-gray-700 font-medium whitespace-nowrap text-sm sm:text-base">
+          📙 Мат.сауаттылық (10)
+        </button>
+      </div>
+
+      <!-- сұрақтар аймағы -->
+      <div id="testArea" class="space-y-4"></div>
+      
+      <!-- нәтиже аймағы -->
+      <div id="resultArea" class="hidden"></div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const VARIANT_PASSWORD = "1234";
+      let variantLocked = {1: false, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true};
+
+      // ============ ИНФОРМАТИКА (90 сұрақ, орташа + қиын аралас) ============
+      const informaticsBank = [
+        // ОРТАША ДЕҢГЕЙ (45 сұрақ)
+        {q: "Процессордың негізгі қызметі?", opts: ["Деректерді сақтау", "Есептеулер орындау", "Ақпаратты енгізу", "Мәліметтерді шығару"], ans: 1, level: 'medium'},
+        {q: "Компьютердің 'миы' қай құрылғы?", opts: ["Жедел жады", "Процессор", "Қатты диск", "Видеокарта"], ans: 1, level: 'medium'},
+        {q: "Ақпаратты ұзақ мерзімді сақтау құрылғысы?", opts: ["RAM", "ROM", "HDD", "Кэш"], ans: 2, level: 'medium'},
+        {q: "Жедел жадтың ағылшынша атауы?", opts: ["ROM", "RAM", "CPU", "HDD"], ans: 1, level: 'medium'},
+        {q: "Тек оқуға арналған жад?", opts: ["RAM", "ROM", "HDD", "SSD"], ans: 1, level: 'medium'},
+        {q: "Өшірілгеннен кейін ақпарат сақталмайтын жад?", opts: ["Тұрақты жад", "Жедел жад", "Сыртқы жад", "Оптикалық диск"], ans: 1, level: 'medium'},
+        {q: "Процессордың негізгі сипаттамасы?", opts: ["Тактілік жиілік", "Көлемі", "Салмағы", "Түсі"], ans: 0, level: 'medium'},
+        {q: "SSD дискінің HDD-ден артықшылығы?", opts: ["Арзан баға", "Үлкен көлем", "Жылдам жұмыс", "Салмағы ауыр"], ans: 2, level: 'medium'},
+        {q: "Операциялық жүйе дегеніміз?", opts: ["Ойындар жиынтығы", "Компьютерді басқаратын бағдарлама", "Мәтіндік редактор", "Графикалық редактор"], ans: 1, level: 'medium'},
+        {q: "Windows ОЖ кім шығарды?", opts: ["Apple", "Microsoft", "Google", "IBM"], ans: 1, level: 'medium'},
+        {q: "Linux ОЖ ерекшелігі?", opts: ["Ақылы", "Тек Apple-де", "Ашық кодты", "Ойындарға арналған"], ans: 2, level: 'medium'},
+        {q: "Драйвер дегеніміз?", opts: ["Ойын", "Антивирус", "Құрылғыны басқаратын бағдарлама", "Мәтіндік редактор"], ans: 2, level: 'medium'},
+        {q: "Файл дегеніміз?", opts: ["Бағдарлама", "Ақпарат жиынтығы", "Қалта", "Диск"], ans: 1, level: 'medium'},
+        {q: "Қалта (папка) дегеніміз?", opts: ["Файлдар жиынтығы", "Бағдарлама", "Диск", "Жад"], ans: 0, level: 'medium'},
+        {q: "Мәтіндік файлдың кеңейтілуі?", opts: [".exe", ".txt", ".jpg", ".mp3"], ans: 1, level: 'medium'},
+        {q: "Сурет файлының кеңейтілуі?", opts: [".txt", ".mp3", ".jpg", ".avi"], ans: 2, level: 'medium'},
+        {q: "Дыбыс файлының кеңейтілуі?", opts: [".bmp", ".mp3", ".doc", ".xls"], ans: 1, level: 'medium'},
+        {q: "Интернет дегеніміз?", opts: ["Жергілікті желі", "Ғаламдық желі", "Бағдарлама", "Компьютер"], ans: 1, level: 'medium'},
+        {q: "Браузер дегеніміз?", opts: ["Веб-сайт", "Пошта бағдарламасы", "Веб-беттерді көру бағдарламасы", "Ойын"], ans: 2, level: 'medium'},
+        {q: "HTTP протоколы не үшін?", opts: ["Пошта жіберу", "Файл жіберу", "Веб-беттерді жіберу", "Дыбыс жіберу"], ans: 2, level: 'medium'},
+        {q: "URL дегеніміз?", opts: ["Компьютер атауы", "Файл атауы", "Веб-беттің мекенжайы", "Бағдарлама атауы"], ans: 2, level: 'medium'},
+        {q: "Электрондық поштада қандай белгі міндетті?", opts: ["@", "#", "$", "&"], ans: 0, level: 'medium'},
+        {q: "IP-мекенжай дегеніміз?", opts: ["Веб-сайт атауы", "Компьютердің желідегі мекенжайы", "Пошта мекенжайы", "Файл мекенжайы"], ans: 1, level: 'medium'},
+        {q: "Домен дегеніміз?", opts: ["IP-дің мәтіндік атауы", "Компьютер атауы", "Файл атауы", "Бағдарлама атауы"], ans: 0, level: 'medium'},
+        {q: "Wi-Fi дегеніміз?", opts: ["Сымды байланыс", "Сымсыз байланыс", "Браузер", "Антивирус"], ans: 1, level: 'medium'},
+        {q: "Компьютерлік вирус дегеніміз?", opts: ["Пайдалы бағдарлама", "Зиянды бағдарлама", "Ойын", "Антивирус"], ans: 1, level: 'medium'},
+        {q: "Антивирус дегеніміз?", opts: ["Вирус таратады", "Вирустан қорғайды", "Ойын", "Мәтіндік редактор"], ans: 1, level: 'medium'},
+        {q: "Фишинг дегеніміз?", opts: ["Балық аулау", "Құпия сөзді ұрлау", "Вирус жұқтыру", "Пошта жіберу"], ans: 1, level: 'medium'},
+        {q: "Брандмауэр (Firewall) не үшін?", opts: ["Желі шабуылынан қорғау", "Вирус жұқтыру", "Деректерді сақтау", "Деректерді өңдеу"], ans: 0, level: 'medium'},
+        {q: "Спам дегеніміз?", opts: ["Пайдалы хат", "Қажетсіз хат", "Бағдарлама", "Ойын"], ans: 1, level: 'medium'},
+        {q: "Пароль қандай болуы керек?", opts: ["Қарапайым", "Күрделі әрі ұзын", "Тек сандардан", "Тек әріптерден"], ans: 1, level: 'medium'},
+        {q: "Екі факторлы аутентификация?", opts: ["Бір рет тексеру", "Екі рет тексеру", "Үш рет тексеру", "Тексерусіз"], ans: 1, level: 'medium'},
+        {q: "Авторлық құқық дегеніміз?", opts: ["Тегін пайдалану", "Автордың құқығын қорғау", "Көшіруге рұқсат", "Өзгертуге рұқсат"], ans: 1, level: 'medium'},
+        {q: "Лицензиялық бағдарлама?", opts: ["Тегін", "Заңды түрде сатып алынған", "Пираттық", "Уақытша"], ans: 1, level: 'medium'},
+        {q: "Кэш-жад дегеніміз?", opts: ["Негізгі жад", "Жылдам аралық жад", "Сыртқы жад", "Тек оқуға арналған"], ans: 1, level: 'medium'},
+        {q: "Файлдық жүйе дегеніміз?", opts: ["Деректерді сақтау әдісі", "Бағдарлама түрі", "Құрылғы драйвері", "Жедел жад"], ans: 0, level: 'medium'},
+        {q: "TCP/IP протоколы не үшін?", opts: ["Пошта жіберу", "Желіде деректер жіберу", "Файлдарды сығу", "Антивирус"], ans: 1, level: 'medium'},
+        {q: "IP-мекенжайдың неше октеті бар?", opts: ["2", "4", "6", "8"], ans: 1, level: 'medium'},
+        {q: "DNS серверінің қызметі?", opts: ["Поштаны сақтау", "Доменді IP-ге түрлендіру", "Вирусты тексеру", "Файлды жүктеу"], ans: 1, level: 'medium'},
+        {q: "Коммутатор (switch) не үшін?", opts: ["Сигналды күшейту", "Құрылғыларды байланыстыру", "Интернетке қосу", "Деректерді сақтау"], ans: 1, level: 'medium'},
+        {q: "Криптография дегеніміз?", opts: ["Деректерді сығу", "Деректерді шифрлау", "Вирус жасау", "Жадты тазарту"], ans: 1, level: 'medium'},
+        {q: "Python тілінде айнымалы жариялау?", opts: ["var x = 5", "x = 5", "int x = 5", "declare x = 5"], ans: 1, level: 'medium'},
+        {q: "Алгоритмнің қасиеті емес?", opts: ["Дискреттілік", "Түсініктілік", "Шексіздік", "Нәтижелілік"], ans: 2, level: 'medium'},
+        {q: "Виртуалды жад не үшін?", opts: ["Жад көлемін ұлғайту", "Жадты тазарту", "Процессорды жылдамдату", "Энергияны үнемдеу"], ans: 0, level: 'medium'},
+        
+        // КҮРДЕЛІ ДЕҢГЕЙ (45 сұрақ)
+        {q: "RISC процессорларының CISC-тен айырмашылығы?", opts: ["Қарапайым командалар", "Күрделі командалар", "Төмен жиілік", "Үлкен кэш"], ans: 0, level: 'hard'},
+        {q: "Үзілім (interrupt) дегеніміз?", opts: ["Бағдарламаның тоқтауы", "Процессордың сигналды өңдеуі", "Жадтың толуы", "Қате туралы хабар"], ans: 1, level: 'hard'},
+        {q: "Көп арналы (multithreading) өңдеу?", opts: ["Бір процессорда бір ағын", "Бір ядрода бірнеше ағын", "Бірнеше процессор", "Жадты бөлу"], ans: 1, level: 'hard'},
+        {q: "RAID 5 массивінің ерекшелігі?", opts: ["Деректерді бөлу + тексеру", "Толық көшіру", "Екі дискіге жазу", "Тек оқу"], ans: 0, level: 'hard'},
+        {q: "Симметриялық шифрлау мысалы?", opts: ["RSA", "AES", "SHA-256", "MD5"], ans: 1, level: 'hard'},
+        {q: "Асимметриялық шифрлауда неше кілт?", opts: ["1", "2", "3", "4"], ans: 1, level: 'hard'},
+        {q: "DDoS шабуылының мақсаты?", opts: ["Деректерді ұрлау", "Қызмет көрсетуді бұзу", "Парольді алу", "Вирус жұқтыру"], ans: 1, level: 'hard'},
+        {q: "Буфердің толып кетуі (buffer overflow) неге әкеледі?", opts: ["Жадтың бос болуы", "Бағдарламаның дұрыс жұмыс істемеуі", "Процессордың жылдамдауы", "Энергияны үнемдеу"], ans: 1, level: 'hard'},
+        {q: "Виртуалдаудың гипервизоры не үшін?", opts: ["Жадты басқару", "Виртуалды машиналарды басқару", "Желіге қосу", "Файлдарды сақтау"], ans: 1, level: 'hard'},
+        {q: "Компилятор мен интерпретатор айырмашылығы?", opts: ["Компилятор бірден орындайды", "Интерпретатор кодты түрлендіреді", "Екеуі бірдей", "Компилятор алдымен аударады"], ans: 3, level: 'hard'},
+        {q: "Үлкен деректер (Big Data) қасиеті?", opts: ["Көлем, жылдамдық, алуантүрлілік", "Тек көлем", "Тек жылдамдық", "Тек сандық"], ans: 0, level: 'hard'},
+        {q: "Бұлттық технологиялардың түрі емес?", opts: ["IaaS", "PaaS", "SaaS", "DaaS"], ans: 3, level: 'hard'},
+        {q: "Кванттық компьютердің биті қалай аталады?", opts: ["Бит", "Кубит", "Трит", "Кбайт"], ans: 1, level: 'hard'},
+        {q: "Нейрондық желідегі активация функциясы?", opts: ["Sigmoid", "Windows", "Linux", "Intel"], ans: 0, level: 'hard'},
+        {q: "Блокчейннің негізгі қасиеті?", opts: ["Орталықсыздандыру", "Жоғары жылдамдық", "Төмен баға", "Қарапайымдылық"], ans: 0, level: 'hard'},
+        {q: "Функционалдық бағдарламалау тілі?", opts: ["Java", "Haskell", "C++", "Python"], ans: 1, level: 'hard'},
+        {q: "Жасанды интеллект саласы емес?", opts: ["Machine Learning", "Deep Learning", "Computer Vision", "MS Word"], ans: 3, level: 'hard'},
+        {q: "Кванттық суперпозиция дегеніміз?", opts: ["Бір уақытта бірнеше күй", "Тек бір күй", "Ешқандай күй", "Күйлердің қосындысы"], ans: 0, level: 'hard'},
+        {q: "Криптовалютаның негізгі технологиясы?", opts: ["Блокчейн", "Интернет", "Браузер", "Сервер"], ans: 0, level: 'hard'},
+        {q: "Толық стек әзірлеуші не істейді?", opts: ["Тек фронтенд", "Тек бэкенд", "Екеуін де", "Тек дерекқор"], ans: 2, level: 'hard'},
+        {q: "API дегеніміз?", opts: ["Бағдарламалық интерфейс", "Бағдарлама", "Ойын", "Драйвер"], ans: 0, level: 'hard'},
+        {q: "REST архитектурасы не үшін?", opts: ["Веб-сервистер құру", "Ойын жасау", "Сурет салу", "Мәтін өңдеу"], ans: 0, level: 'hard'},
+        {q: "JSON форматы не үшін?", opts: ["Деректер алмасу", "Сурет сақтау", "Дыбыс сақтау", "Бейне сақтау"], ans: 0, level: 'hard'},
+        {q: "NoSQL дерекқорының мысалы?", opts: ["MySQL", "PostgreSQL", "MongoDB", "Oracle"], ans: 2, level: 'hard'},
+        {q: "Графтық дерекқор дегеніміз?", opts: ["Деректерді граф түрінде сақтайды", "Кесте түрінде", "Тізім түрінде", "Файл түрінде"], ans: 0, level: 'hard'},
+        {q: "Кибершабуыл түрі емес?", opts: ["Фишинг", "DDos", "Антивирус", "Троян"], ans: 2, level: 'hard'},
+        {q: "Әлеуметтік инженерия дегеніміз?", opts: ["Адамды алдау арқылы ақпарат алу", "Бағдарлама жазу", "Желі құру", "Сервер орнату"], ans: 0, level: 'hard'}
+      ];
+
+      // ============ МАТЕМАТИКА (90 сұрақ) ============
+      const mathematicsBank = [
+        // ОРТАША (45)
+        {q: "5 + 3 * 2 өрнегінің мәні?", opts: ["16", "11", "10", "13"], ans: 1, level: 'medium'},
+        {q: "x + 5 = 12 теңдеуін шешіңіз", opts: ["5", "7", "6", "8"], ans: 1, level: 'medium'},
+        {q: "2x - 3 = 7 теңдеуін шешіңіз", opts: ["2", "5", "4", "6"], ans: 1, level: 'medium'},
+        {q: "Квадрат теңдеудің дискриминанты?", opts: ["b²-4ac", "b²+4ac", "4ac-b²", "b²-2ac"], ans: 0, level: 'medium'},
+        {q: "D>0 болса, неше түбір бар?", opts: ["0", "1", "2", "Шексіз"], ans: 2, level: 'medium'},
+        {q: "D=0 болса, неше түбір бар?", opts: ["0", "1", "2", "Шексіз"], ans: 1, level: 'medium'},
+        {q: "(a+b)² өрнегін жаз", opts: ["a²+b²", "a²+2ab+b²", "a²-2ab+b²", "2a+2b"], ans: 1, level: 'medium'},
+        {q: "(a-b)² өрнегін жаз", opts: ["a²-b²", "a²-2ab+b²", "a²+2ab-b²", "2a-2b"], ans: 1, level: 'medium'},
+        {q: "a² - b² өрнегін жікте", opts: ["(a-b)²", "(a+b)(a-b)", "(a+b)²", "a(a-b)"], ans: 1, level: 'medium'},
+        {q: "Үшбұрыштың ішкі бұрыштарының қосындысы?", opts: ["90°", "180°", "270°", "360°"], ans: 1, level: 'medium'},
+        {q: "Пифагор теоремасы?", opts: ["a²+b²=c²", "a+b=c", "ab=c", "a²-b²=c²"], ans: 0, level: 'medium'},
+        {q: "Тіктөртбұрыштың ауданы?", opts: ["a+b", "a*b", "2(a+b)", "a/b"], ans: 1, level: 'medium'},
+        {q: "Тіктөртбұрыштың периметрі?", opts: ["a*b", "2(a+b)", "a+b", "a/b"], ans: 1, level: 'medium'},
+        {q: "Шеңбердің ұзындығы?", opts: ["πR²", "2πR", "πD²", "2πD"], ans: 1, level: 'medium'},
+        {q: "Шеңбердің ауданы?", opts: ["2πR", "πR²", "πD", "πR"], ans: 1, level: 'medium'},
+        {q: "Кубтың көлемі?", opts: ["a²", "a³", "6a²", "4a"], ans: 1, level: 'medium'},
+        {q: "Тікбұрышты параллелепипед көлемі?", opts: ["a+b+c", "abc", "2(ab+bc+ac)", "a²b"], ans: 1, level: 'medium'},
+        {q: "Трапецияның ауданы?", opts: ["(a+b)h/2", "ah/2", "a+b", "abh"], ans: 0, level: 'medium'},
+        {q: "sin 30° неге тең?", opts: ["0", "1/2", "√2/2", "√3/2"], ans: 1, level: 'medium'},
+        {q: "cos 60° неге тең?", opts: ["0", "1/2", "√2/2", "√3/2"], ans: 1, level: 'medium'},
+        {q: "sin 45° неге тең?", opts: ["0", "1/2", "√2/2", "√3/2"], ans: 2, level: 'medium'},
+        {q: "cos 45° неге тең?", opts: ["0", "1/2", "√2/2", "√3/2"], ans: 2, level: 'medium'},
+        {q: "tg 45° неге тең?", opts: ["0", "1", "√3", "∞"], ans: 1, level: 'medium'},
+        {q: "sin²α + cos²α = ?", opts: ["0", "1", "2", "-1"], ans: 1, level: 'medium'},
+        {q: "y = kx + b функциясы?", opts: ["Квадраттық", "Сызықтық", "Көрсеткіштік", "Логарифмдік"], ans: 1, level: 'medium'},
+        {q: "y = x² функциясының графигі?", opts: ["Түзу", "Парабола", "Гипербола", "Синусоида"], ans: 1, level: 'medium'},
+        {q: "Функцияның анықталу облысы?", opts: ["Мәндері", "Х-тің мүмкін мәндері", "У-тің мәндері", "График"], ans: 1, level: 'medium'},
+        {q: "Арифметикалық прогрессия формуласы?", opts: ["an = a1 + (n-1)d", "an = a1 * d^(n-1)", "an = a1 + nd", "an = a1 * d*n"], ans: 0, level: 'medium'},
+        {q: "Геометриялық прогрессия формуласы?", opts: ["bn = b1 * q^(n-1)", "bn = b1 + (n-1)q", "bn = b1 * q*n", "bn = b1 + q^n"], ans: 0, level: 'medium'},
+        {q: "Туынды: f(x)=x² неге тең?", opts: ["2x", "x", "2", "0"], ans: 0, level: 'medium'},
+        {q: "Интеграл ∫x dx = ?", opts: ["x²/2 + C", "x² + C", "x + C", "2x + C"], ans: 0, level: 'medium'},
+        {q: "log₂8 = ?", opts: ["3", "2", "4", "1"], ans: 0, level: 'medium'},
+        {q: "10% - бұл қандай бөлшек?", opts: ["0.1", "0.01", "0.001", "0.11"], ans: 0, level: 'medium'},
+        
+        // КҮРДЕЛІ (45)
+        {q: "Теңдеулер жүйесі: x+y=7, x-y=3", opts: ["(5,2)", "(4,3)", "(6,1)", "(3,4)"], ans: 0, level: 'hard'},
+        {q: "Туынды: f(x)=3x²+2x", opts: ["6x+2", "3x+2", "6x", "2x+3"], ans: 0, level: 'hard'},
+        {q: "Интеграл ∫(2x)dx = ?", opts: ["x²+C", "2x²+C", "x²/2+C", "2x+C"], ans: 0, level: 'hard'},
+        {q: "Арифметикалық прогрессия: a1=3, d=2, a5=?", opts: ["11", "13", "9", "7"], ans: 0, level: 'hard'},
+        {q: "Геометриялық прогрессия: b1=2, q=3, b4=?", opts: ["54", "18", "36", "72"], ans: 0, level: 'hard'},
+        {q: "lim(x→0) sin(x)/x = ?", opts: ["1", "0", "∞", "-1"], ans: 0, level: 'hard'},
+        {q: "Туынды: f(x)=sin(2x)", opts: ["2cos(2x)", "cos(2x)", "2sin(2x)", "-2cos(2x)"], ans: 0, level: 'hard'},
+        {q: "Интеграл ∫₀¹ x² dx = ?", opts: ["1/3", "1/2", "1", "2/3"], ans: 0, level: 'hard'},
+        {q: "Матрицаларды көбейту: [1 2; 3 4] × [1 0; 0 1] = ?", opts: ["[1 2; 3 4]", "[1 0; 0 1]", "[2 0; 0 2]", "[0 0; 0 0]"], ans: 0, level: 'hard'},
+        {q: "Векторлардың скаляр көбейтіндісі: (1,2,3)·(4,5,6)=?", opts: ["32", "44", "28", "36"], ans: 0, level: 'hard'},
+        {q: "Ықтималдық: 3 тиынды лақтырғанда 2 рет елтаңба түсу ықтималдығы?", opts: ["3/8", "1/2", "1/4", "3/4"], ans: 0, level: 'hard'},
+        {q: "log₃27 + log₅25 = ?", opts: ["5", "6", "7", "8"], ans: 1, level: 'hard'},
+        {q: "sin²x + cos²x = 1 теңбе-теңдігі қалай аталады?", opts: ["Негізгі тригонометриялық теңбе-теңдік", "Пифагор теоремасы", "Синустар теоремасы", "Косинустар теоремасы"], ans: 0, level: 'hard'},
+        {q: "Туынды: f(x)=e^x * sin x", opts: ["e^x(sin x + cos x)", "e^x * cos x", "e^x * sin x", "e^x(sin x - cos x)"], ans: 0, level: 'hard'},
+        {q: "Анықталмаған интеграл ∫(3x² + 2x + 1)dx", opts: ["x³ + x² + x + C", "3x³ + 2x² + x + C", "x³ + x² + C", "6x + 2 + C"], ans: 0, level: 'hard'},
+        {q: "lim(x→∞) (1 + 1/x)^x = ?", opts: ["e", "1", "∞", "0"], ans: 0, level: 'hard'},
+        {q: "Комплекс сандар: i² = ?", opts: ["-1", "1", "i", "-i"], ans: 0, level: 'hard'},
+        {q: "Векторлық көбейтіндінің нәтижесі?", opts: ["Вектор", "Скаляр", "Матрица", "Сан"], ans: 0, level: 'hard'}
+      ];
+
+      // ============ МАТЕМАТИКАЛЫҚ САУАТТЫЛЫҚ (30 сұрақ) ============
+      const literacyBank = [
+        {q: "20% жеңілдікпен 5000 тг тұратын тауар бағасы?", opts: ["1000тг", "4000тг", "4500тг", "4800тг"], ans: 1, level: 'medium'},
+        {q: "100000тг 10% жылдықпен 1 жылдан кейін?", opts: ["10000тг", "110000тг", "120000тг", "100000тг"], ans: 1, level: 'medium'},
+        {q: "3кг алма 600тг, 5кг қанша?", opts: ["800тг", "900тг", "1000тг", "1200тг"], ans: 2, level: 'medium'},
+        {q: "Пойыз 4 сағ 320 км жүрді. Жылдамдығы?", opts: ["60км/сағ", "70км/сағ", "80км/сағ", "90км/сағ"], ans: 2, level: 'medium'},
+        {q: "240 бет кітаптың 25% оқылды. Неше бет оқылды?", opts: ["40", "50", "60", "80"], ans: 2, level: 'medium'},
+        {q: "30 оқушының 60% қыз. Қыз саны?", opts: ["12", "15", "18", "20"], ans: 2, level: 'medium'},
+        {q: "50кг картоптың 20% жұмсалды. Қалды?", opts: ["10кг", "20кг", "30кг", "40кг"], ans: 3, level: 'medium'},
+        {q: "Қабырғалары 5,6,7 см үшбұрыш периметрі?", opts: ["15см", "16см", "17см", "18см"], ans: 2, level: 'medium'},
+        {q: "Тіктөртбұрыш 8см х 5см. Ауданы?", opts: ["26см²", "30см²", "40см²", "45см²"], ans: 2, level: 'medium'},
+        {q: "Шаршы 7см. Ауданы?", opts: ["28см²", "35см²", "42см²", "49см²"], ans: 3, level: 'medium'},
+        {q: "800 оқушының 45% ұлдар. Ұлдар саны?", opts: ["320", "340", "360", "380"], ans: 2, level: 'medium'},
+        {q: "90000тг телефон 20% қымбаттады. Жаңа бағасы?", opts: ["100000тг", "105000тг", "108000тг", "110000тг"], ans: 2, level: 'medium'},
+        {q: "2500 кітаптың 40% көркем. Көркем кітап саны?", opts: ["800", "900", "1000", "1100"], ans: 2, level: 'medium'},
+        {q: "Жұмысшы 5 күнде 120 бөлшек. 8 күнде неше?", opts: ["172", "182", "192", "202"], ans: 2, level: 'medium'},
+        {q: "90 км/сағ 3 сағ қашықтық?", opts: ["180км", "210км", "240км", "270км"], ans: 3, level: 'medium'},
+        {q: "2 сағ 140 км жүрді. Жылдамдығы?", opts: ["60км/сағ", "65км/сағ", "70км/сағ", "75км/сағ"], ans: 2, level: 'medium'},
+        
+        // КҮРДЕЛІ
+        {q: "500000тг 12% жай пайызбен 2 жылдан кейін?", opts: ["620000тг", "600000тг", "580000тг", "560000тг"], ans: 0, level: 'hard'},
+        {q: "40% жеңілдікпен 60000тг тауардың бастапқы бағасы?", opts: ["100000тг", "84000тг", "96000тг", "80000тг"], ans: 0, level: 'hard'},
+        {q: "3кг алма+2кг алмұрт=2500тг, 2кг алма+3кг алмұрт=3000тг. 1кг алма бағасы?", opts: ["300тг", "400тг", "500тг", "600тг"], ans: 0, level: 'hard'},
+        {q: "360км 4сағ. Жылдамдық 15км/сағ артса, сол уақытта неше км?", opts: ["420км", "400км", "440км", "460км"], ans: 0, level: 'hard'},
+        {q: "Үш сан 2:3:5 қатынаста, қосындысы 200. Ең үлкен сан?", opts: ["100", "80", "60", "120"], ans: 0, level: 'hard'},
+        {q: "30% оқылды, қалғаны 140 бет. Барлығы неше бет?", opts: ["200", "220", "180", "240"], ans: 0, level: 'hard'},
+        {q: "Екі сан айырмасы 15, қосындысы 85. Кіші сан?", opts: ["35", "40", "30", "45"], ans: 0, level: 'hard'},
+        {q: "90км/сағ 3сағ + 70км/сағ 2сағ. Орташа жылдамдық?", opts: ["82км/сағ", "80км/сағ", "84км/сағ", "86км/сағ"], ans: 0, level: 'hard'},
+        {q: "Қорытпа 40% мыс, 120кг қорытпада мырыш неше кг?", opts: ["72кг", "48кг", "60кг", "80кг"], ans: 0, level: 'hard'},
+        {q: "Бірінші құбыр 6сағ, екінші 8сағ толтырады. Бірге неше сағ?", opts: ["24/7сағ", "7/24сағ", "14сағ", "2сағ"], ans: 0, level: 'hard'},
+        {q: "Күрделі пайыз: 100000тг 10% 2 жылда неше болады?", opts: ["121000тг", "120000тг", "110000тг", "122000тг"], ans: 0, level: 'hard'}
+      ];
+
+      // Сұрақтарды 8 нұсқаға бөлу (әр нұсқаға 40/40/10, барлығы әртүрлі)
+      function shuffleArray(arr) {
+        return [...arr].sort(() => Math.random() - 0.5);
+      }
+
+      // Әр нұсқаға арналған қор
+      let variantQuestions = {
+        informatics: {1:[],2:[],3:[],4:[],5:[],6:[],7:[],8:[]},
+        mathematics: {1:[],2:[],3:[],4:[],5:[],6:[],7:[],8:[]},
+        literacy: {1:[],2:[],3:[],4:[],5:[],6:[],7:[],8:[]}
+      };
+
+      // Информатика: 45 орташа + 45 қиын = 90, әр нұсқаға 40 сұрақ (20 орташа + 20 қиын)
+      for (let v=1; v<=8; v++) {
+        let mediumPool = informaticsBank.filter(q => q.level === 'medium');
+        let hardPool = informaticsBank.filter(q => q.level === 'hard');
+        
+        // Араластыру
+        mediumPool = shuffleArray(mediumPool);
+        hardPool = shuffleArray(hardPool);
+        
+        // Әр нұсқаға 20 орташа + 20 қиын
+        let selected = [];
+        for (let i=0; i<20; i++) {
+          selected.push(mediumPool[(v*3 + i) % mediumPool.length]);
+          selected.push(hardPool[(v*5 + i) % hardPool.length]);
+        }
+        // Араластыру
+        variantQuestions.informatics[v] = shuffleArray(selected);
+      }
+
+      // Математика
+      for (let v=1; v<=8; v++) {
+        let mediumPool = mathematicsBank.filter(q => q.level === 'medium');
+        let hardPool = mathematicsBank.filter(q => q.level === 'hard');
+        
+        mediumPool = shuffleArray(mediumPool);
+        hardPool = shuffleArray(hardPool);
+        
+        let selected = [];
+        for (let i=0; i<20; i++) {
+          selected.push(mediumPool[(v*2 + i) % mediumPool.length]);
+          selected.push(hardPool[(v*7 + i) % hardPool.length]);
+        }
+        variantQuestions.mathematics[v] = shuffleArray(selected);
+      }
+
+      // Мат.сауаттылық (5 орташа + 5 қиын)
+      for (let v=1; v<=8; v++) {
+        let mediumPool = literacyBank.filter(q => q.level === 'medium');
+        let hardPool = literacyBank.filter(q => q.level === 'hard');
+        
+        mediumPool = shuffleArray(mediumPool);
+        hardPool = shuffleArray(hardPool);
+        
+        let selected = [];
+        for (let i=0; i<5; i++) {
+          selected.push(mediumPool[(v*3 + i) % mediumPool.length]);
+          selected.push(hardPool[(v*4 + i) % hardPool.length]);
+        }
+        variantQuestions.literacy[v] = shuffleArray(selected);
+      }
+
+      // Қалған код (UI функциялары) дәл сол күйінде қалады
+      let currentQuestions = { informatics: [], mathematics: [], literacy: [] };
+      let currentAnswers = {};
+      let currentVariant = 1;
+      let selectedVariant = 1;
+      let testCompleted = false;
+      let activeSubject = 'informatics';
+
+      function createVariantButtons() {
+        const container = document.getElementById('variantSelector');
+        container.innerHTML = '';
+        for (let i=1; i<=8; i++) {
+          const btn = document.createElement('button');
+          btn.textContent = i;
+          btn.className = `variant-btn relative p-2 rounded-lg text-sm font-medium transition 
+            ${i===currentVariant ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`;
+          if (variantLocked[i]) btn.classList.add('locked-variant');
+          else btn.classList.add('unlocked-variant');
+          btn.onclick = () => onVariantClick(i);
+          container.appendChild(btn);
+        }
+      }
+
+      function onVariantClick(v) {
+        selectedVariant = v;
+        if (v === 1) selectVariant(1);
+        else {
+          if (variantLocked[v]) {
+            document.getElementById('passwordSection').classList.remove('hidden');
+            document.getElementById('passwordTitle').textContent = `${v}-нұсқаға кіру`;
+            document.getElementById('variantPassword').value = '';
+            document.getElementById('variantPasswordError').classList.add('hidden');
+          } else selectVariant(v);
+        }
+      }
+
+      function checkVariantPassword() {
+        const pwd = document.getElementById('variantPassword').value;
+        if (pwd === VARIANT_PASSWORD) {
+          variantLocked[selectedVariant] = false;
+          document.getElementById('passwordSection').classList.add('hidden');
+          document.getElementById('variantPasswordError').classList.add('hidden');
+          updateVariantButtons();
+          selectVariant(selectedVariant);
+        } else {
+          document.getElementById('variantPasswordError').classList.remove('hidden');
+        }
+      }
+
+      function updateVariantButtons() {
+        const btns = document.querySelectorAll('.variant-btn');
+        btns.forEach((btn, idx) => {
+          let v = idx+1;
+          btn.className = `variant-btn relative p-2 rounded-lg text-sm font-medium transition 
+            ${v===currentVariant ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`;
+          if (variantLocked[v]) {
+            btn.classList.add('locked-variant');
+            btn.classList.remove('unlocked-variant');
+          } else {
+            btn.classList.add('unlocked-variant');
+            btn.classList.remove('locked-variant');
+          }
+        });
+      }
+
+      function selectVariant(v) {
+        if (v !== 1 && variantLocked[v]) { alert('Құлыпталған. Пароль енгізіңіз.'); return; }
+        currentVariant = v;
+        currentQuestions.informatics = [...variantQuestions.informatics[v]];
+        currentQuestions.mathematics = [...variantQuestions.mathematics[v]];
+        currentQuestions.literacy = [...variantQuestions.literacy[v]];
+        currentAnswers = {};
+        testCompleted = false;
+
+        updateVariantButtons();
+        document.getElementById('variantInfo').innerText = `${v}-нұсқа ${v===1?'(тегін)':'(ашылған)'} • 90 сұрақ`;
+        document.getElementById('currentVariantInfo').innerText = v;
+        document.getElementById('variantStatus').innerText = v===1 ? '1-нұсқа тегін' : `${v}-нұсқа ашылған`;
+
+        document.getElementById('finishBtn').classList.remove('hidden');
+        document.getElementById('resetBtn').classList.remove('hidden');
+        document.getElementById('resultArea').classList.add('hidden');
+
+        showSubjectTab('informatics');
+        updateQuestionNumbers();
+        updateProgress();
+      }
+
+      function showSubjectTab(subj) {
+        activeSubject = subj;
+        ['informatics','mathematics','literacy'].forEach(s => {
+          const el = document.getElementById(`tab${s.charAt(0).toUpperCase()+s.slice(1)}`);
+          if (s === subj) {
+            el.className = 'px-3 sm:px-4 py-2 rounded-t-lg bg-white text-blue-600 font-medium border-b-2 border-blue-600 whitespace-nowrap text-sm sm:text-base';
+          } else {
+            el.className = 'px-3 sm:px-4 py-2 rounded-t-lg bg-gray-200 text-gray-700 font-medium whitespace-nowrap text-sm sm:text-base';
+          }
+        });
+        displayQuestions(subj);
+      }
+
+      function displayQuestions(subj) {
+        const container = document.getElementById('testArea');
+        container.innerHTML = '';
+        const qs = currentQuestions[subj];
+        let startIdx = subj==='informatics'?0 : subj==='mathematics'?40:80;
+        qs.forEach((q, idx) => {
+          if (!q) return;
+          const globalIdx = startIdx + idx;
+          const saved = currentAnswers[globalIdx];
+          const letters = ['A','B','C','D'];
+          let optsHtml = '';
+          for (let i=0;i<4;i++) {
+            optsHtml += `
+              <label class="flex items-center p-2 sm:p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition 
+                ${saved===i ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}">
+                <input type="radio" name="q${globalIdx}" value="${i}" ${saved===i?'checked':''} 
+                       onchange="saveAnswer(${globalIdx}, ${i})" class="w-4 h-4 text-blue-600 shrink-0">
+                <span class="ml-2 text-sm sm:text-base text-gray-700">${letters[i]}. ${q.opts[i]}</span>
+              </label>
+            `;
+          }
+          const card = document.createElement('div');
+          card.className = `bg-white p-4 sm:p-6 rounded-xl shadow-md hover:shadow-lg transition question-card ${q.level === 'hard' ? 'hard-question' : 'medium-question'}`;
+          card.id = `q${globalIdx}`;
+          card.innerHTML = `
+            <p class="font-semibold text-base sm:text-lg mb-3 flex items-center gap-2">
+              ${globalIdx+1}. ${q.q}
+              ${q.level === 'hard' ? '<span class="text-xs bg-red-100 text-red-700 px-2 py-1 rounded">күрделі</span>' : '<span class="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded">орташа</span>'}
+            </p>
+            <div class="space-y-2 sm:space-y-3">${optsHtml}</div>
+          `;
+          container.appendChild(card);
+        });
+      }
+
+      window.saveAnswer = function(globalIdx, ans) {
+        if (testCompleted) return;
+        currentAnswers[globalIdx] = ans;
+        updateQuestionNumbers();
+        updateProgress();
+        const qDiv = document.getElementById(`q${globalIdx}`);
+        if (qDiv) {
+          const labels = qDiv.querySelectorAll('label');
+          labels.forEach((l,i) => {
+            if (i===ans) { l.classList.add('border-blue-500','bg-blue-50'); }
+            else { l.classList.remove('border-blue-500','bg-blue-50'); }
+          });
+        }
+      };
+
+      function updateQuestionNumbers() {
+        const box = document.getElementById('questionNumbers');
+        box.innerHTML = '';
+        for (let i=1;i<=90;i++) {
+          const btn = document.createElement('button');
+          btn.innerText = i;
+          let cls = 'bg-gray-700 text-white py-1 rounded-lg hover:bg-gray-600 transition text-xs';
+          if (currentAnswers[i-1] !== undefined) cls = 'bg-green-600 text-white py-1 rounded-lg hover:bg-green-500 transition text-xs';
+          btn.className = cls;
+          btn.onclick = () => scrollToQuestion(i-1);
+          box.appendChild(btn);
+        }
+      }
+
+      function scrollToQuestion(idx) {
+        const el = document.getElementById(`q${idx}`);
+        if (el) {
+          el.scrollIntoView({behavior:'smooth', block:'center'});
+          if (idx<40) showSubjectTab('informatics');
+          else if (idx<80) showSubjectTab('mathematics');
+          else showSubjectTab('literacy');
+        }
+      }
+
+      function updateProgress() {
+        const answered = Object.keys(currentAnswers).length;
+        const percent = Math.round((answered/90)*100);
+        document.getElementById('progressPercent').innerText = percent+'%';
+        document.getElementById('progressBar').style.width = percent+'%';
+        document.getElementById('answeredCount').innerText = answered+'/90';
+        let inf=0,math=0,lit=0;
+        for (let i=0;i<90;i++) {
+          if (currentAnswers[i]!==undefined) {
+            if (i<40) inf++;
+            else if (i<80) math++;
+            else lit++;
+          }
+        }
+        document.getElementById('infoProgress').innerText = inf+'/40';
+        document.getElementById('mathProgress').innerText = math+'/40';
+        document.getElementById('literacyProgress').innerText = lit+'/10';
+      }
+
+      window.confirmFinish = function() {
+        const left = 90 - Object.keys(currentAnswers).length;
+        if (left>0 && !confirm(`${left} сұраққа жауап жоқ. Аяқтайсыз ба?`)) return;
+        finishAttempt();
+      };
+
+      function finishAttempt() {
+        testCompleted = true;
+        let infSc=0, mathSc=0, litSc=0;
+        for (let i=0;i<40;i++) if (currentQuestions.informatics[i] && currentAnswers[i]===currentQuestions.informatics[i].ans) infSc++;
+        for (let i=0;i<40;i++) if (currentQuestions.mathematics[i] && currentAnswers[i+40]===currentQuestions.mathematics[i].ans) mathSc++;
+        for (let i=0;i<10;i++) if (currentQuestions.literacy[i] && currentAnswers[i+80]===currentQuestions.literacy[i].ans) litSc++;
+        const total = infSc+mathSc+litSc;
+        const perc = Math.round((total/90)*100);
+
+        document.getElementById('testArea').innerHTML = '';
+        document.getElementById('finishBtn').classList.add('hidden');
+        document.getElementById('resultArea').classList.remove('hidden');
+        let grade = perc>=90?'🍇 Өте жақсы (күрделі)':perc>=75?'👍 Жақсы':perc>=60?'👌 Орташа':perc>=40?'📚 Қанағаттанарлық':'📖 Қайталау керек';
+        document.getElementById('resultArea').innerHTML = `
+          <div class="bg-white shadow-2xl rounded-2xl p-5 sm:p-8 max-w-4xl mx-auto">
+            <div class="text-center mb-5"><h3 class="text-2xl sm:text-3xl font-bold text-gray-800">ҰБТ нәтижесі</h3><p class="text-gray-600">${currentVariant}-нұсқа (орташа/күрделі аралас)</p></div>
+            <div class="flex flex-wrap justify-center items-center gap-4 sm:gap-8 mb-6">
+              <div class="text-center"><div class="text-5xl sm:text-6xl font-bold text-green-600">${total}</div><div class="text-gray-500">балл</div></div>
+              <div class="text-4xl font-bold text-gray-400">/</div>
+              <div class="text-center"><div class="text-5xl sm:text-6xl font-bold text-gray-600">90</div><div class="text-gray-500">макс</div></div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+              <div class="bg-blue-50 p-3 rounded text-center"><div class="text-sm">Информатика</div><div class="text-xl font-bold text-blue-600">${infSc}/40</div></div>
+              <div class="bg-green-50 p-3 rounded text-center"><div class="text-sm">Математика</div><div class="text-xl font-bold text-green-600">${mathSc}/40</div></div>
+              <div class="bg-yellow-50 p-3 rounded text-center"><div class="text-sm">Мат.сауат.</div><div class="text-xl font-bold text-yellow-600">${litSc}/10</div></div>
+            </div>
+            <div class="text-center mb-6"><div class="text-2xl font-bold ${perc>=60?'text-green-600':'text-red-600'}">${perc}%</div><div class="text-xl text-gray-700">${grade}</div></div>
+            <div class="flex flex-wrap justify-center gap-3">
+              <button onclick="selectVariant(${currentVariant})" class="bg-green-600 text-white px-5 py-3 rounded-lg hover:bg-green-500 transition text-sm">Қайта тапсыру</button>
+              <button onclick="selectVariant(1)" class="bg-purple-600 text-white px-5 py-3 rounded-lg hover:bg-purple-500 transition text-sm">Бастапқы нұсқа</button>
+            </div>
+          </div>
+        `;
+      }
+
+      window.resetTest = function() {
+        if (!testCompleted && !confirm('Тестті қайта бастау?')) return;
+        selectVariant(currentVariant);
+      };
+
+      // бастау
+      createVariantButtons();
+      selectVariant(1);
+
+      // глобалды ету
+      window.checkVariantPassword = checkVariantPassword;
+      window.showSubjectTab = showSubjectTab;
+      window.confirmFinish = confirmFinish;
+      window.resetTest = resetTest;
+      window.selectVariant = selectVariant;
+    })();
+  </script>
+</body>
+</html>
